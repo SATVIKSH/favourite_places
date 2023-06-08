@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:favourite_places/favourite_location_model.dart';
+import 'package:favourite_places/models/favourite_location_model.dart';
 import 'package:favourite_places/providers/location_provider.dart';
 import 'package:favourite_places/widgets/add_image.dart';
 import 'package:favourite_places/widgets/get_location.dart';
@@ -14,6 +14,7 @@ class AddLocationScreen extends ConsumerStatefulWidget {
 }
 
 class _AddLocationScreenState extends ConsumerState<AddLocationScreen> {
+  CurrentLocation? currentLocation;
   final formKey = GlobalKey<FormState>();
   File? imageFile;
   String title = '';
@@ -26,11 +27,12 @@ class _AddLocationScreenState extends ConsumerState<AddLocationScreen> {
       ));
       return;
     }
-    if (formKey.currentState!.validate() && imageFile != null) {
+    if (formKey.currentState!.validate() &&
+        imageFile != null &&
+        currentLocation != null) {
       formKey.currentState!.save();
-      ref
-          .read(locationProvider.notifier)
-          .addLocation(FavouriteLocation(title: title, image: imageFile!));
+      ref.read(locationProvider.notifier).addLocation(FavouriteLocation(
+          title: title, image: imageFile!, location: currentLocation!));
       Navigator.pop(context);
     }
   }
@@ -79,7 +81,11 @@ class _AddLocationScreenState extends ConsumerState<AddLocationScreen> {
                 const SizedBox(
                   height: 8,
                 ),
-                const GetLocation(),
+                GetLocation(
+                  getLocation: (location) {
+                    currentLocation = location;
+                  },
+                ),
                 const SizedBox(
                   height: 8,
                 ),

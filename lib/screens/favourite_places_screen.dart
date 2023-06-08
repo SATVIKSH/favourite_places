@@ -1,11 +1,20 @@
-import 'package:favourite_places/favourite_location_model.dart';
+import 'package:favourite_places/models/favourite_location_model.dart';
 import 'package:favourite_places/providers/location_provider.dart';
 import 'package:favourite_places/screens/add_location_screen.dart';
 import 'package:favourite_places/screens/locationScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FavouritePlacesScreen extends ConsumerWidget {
+class FavouritePlacesScreen extends ConsumerStatefulWidget {
+  const FavouritePlacesScreen({super.key});
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() {
+    return _FavouritePlacesScreen();
+  }
+}
+
+class _FavouritePlacesScreen extends ConsumerState<FavouritePlacesScreen> {
+  late Future<void> loadData;
   void changeScreen(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -16,15 +25,20 @@ class FavouritePlacesScreen extends ConsumerWidget {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    loadData = ref.read(locationProvider.notifier).loadData();
+  }
+
   void locationScreen(BuildContext context, FavouriteLocation location) {
     Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
       return LocationScreen(location: location);
     }));
   }
 
-  const FavouritePlacesScreen({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     var locations = ref.watch(locationProvider);
     Widget content = Center(
       child: Text(
@@ -51,13 +65,15 @@ class FavouritePlacesScreen extends ConsumerWidget {
                   child: CircleAvatar(
                     radius: 26,
                     backgroundImage: FileImage(locations[index].image),
+                    backgroundColor: Colors.transparent,
                   ),
                 ),
-                title: Text(
-                  locations[index].title,
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground),
-                ),
+                title: Text(locations[index].title,
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground)),
+                subtitle: Text(locations[index].location.name,
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: Theme.of(context).colorScheme.onBackground)),
               ),
             ),
           );
@@ -76,7 +92,17 @@ class FavouritePlacesScreen extends ConsumerWidget {
           )
         ],
       ),
-      body: content,
+      body: FutureBuilder(
+          future: loadData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else {
+              return content;
+            }
+          }),
     );
   }
 }

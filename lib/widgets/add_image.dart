@@ -14,8 +14,8 @@ class _AddImageState extends State<AddImage> {
 
   void addImage() async {
     final imagePicker = ImagePicker();
-    final image =
-        await imagePicker.pickImage(source: ImageSource.camera, maxWidth: 600);
+    final image = await imagePicker.pickImage(
+        source: ImageSource.camera, imageQuality: 100);
     if (image == null) {
       return;
     }
